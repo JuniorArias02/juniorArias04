@@ -110,7 +110,7 @@ const Home = () => {
 				>
 					<motion.a
 						whileHover={{ y: -3, color: "#818CF8" }}
-						href="https://github.com"
+						href="https://github.com/JuniorArias02"
 						className="text-gray-400 hover:text-indigo-400 transition-colors"
 						aria-label="GitHub"
 					>
@@ -118,19 +118,11 @@ const Home = () => {
 					</motion.a>
 					<motion.a
 						whileHover={{ y: -3, color: "#818CF8" }}
-						href="https://linkedin.com"
+						href="https://www.linkedin.com/in/juniorarias02/"
 						className="text-gray-400 hover:text-indigo-400 transition-colors"
 						aria-label="LinkedIn"
 					>
 						<FiLinkedin size={20} />
-					</motion.a>
-					<motion.a
-						whileHover={{ y: -3, color: "#818CF8" }}
-						href="https://twitter.com"
-						className="text-gray-400 hover:text-indigo-400 transition-colors"
-						aria-label="Twitter"
-					>
-						<FiTwitter size={20} />
 					</motion.a>
 				</motion.div>
 

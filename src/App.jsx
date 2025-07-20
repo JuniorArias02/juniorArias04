@@ -3,7 +3,7 @@ import RUTAS from "./router/router";
 import Home from "./page/home/Home";
 import Proyectos from "./page/proyects/Proyectos";
 import Error404 from "./PageError/404";
-import MainLayout from "./layouts/layout";
+import MainLayout from "./layouts/Layout";
 
 const App = () => {
   return (

@@ -3,7 +3,7 @@ import Navbar from "../page/components/Navbar";
 import Footer from "../page/components/Footer";
 import { motion } from "framer-motion";
 
-const MainLayout = () => {
+const Layout = () => {
 	return (
 		<div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
 			<Navbar />
@@ -22,4 +22,4 @@ const MainLayout = () => {
 	);
 };
 
-export default MainLayout;
+export default Layout;

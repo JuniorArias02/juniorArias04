@@ -70,7 +70,7 @@ const Home = () => {
 					transition={{ delay: 0.7 }}
 					className="text-lg text-gray-300 max-w-2xl mx-auto mb-8"
 				>
-					<span className="text-indigo-300">Desarrollador Full Stack</span> especializado en crear experiencias digitales innovadoras. Combino código elegante con diseño intuitivo para construir el futuro.
+					<span className="text-indigo-300">Desarrollador Junior</span> especializado en crear experiencias digitales innovadoras. Combino código elegante con diseño intuitivo para construir el futuro.
 				</motion.p>
 
 				<motion.div

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.4](https://github.com/JuniorArias02/juniorArias04/compare/v0.0.3...v0.0.4) (2025-07-21)
+
+
+### Bug Fixes
+
+* correcion del directorios ([8dea47a](https://github.com/JuniorArias02/juniorArias04/commit/8dea47a3c9b88a69f8c9aead77ca54f079f07473))
+
 ### [0.0.3](https://github.com/JuniorArias02/juniorArias04/compare/v0.0.2...v0.0.3) (2025-07-21)
 
 

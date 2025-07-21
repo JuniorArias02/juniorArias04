@@ -10,7 +10,8 @@ import {
 	FaPython,
 	FaDatabase,
 	FaGithub,
-	FaStripeS
+	FaStripeS,
+	FaPhp
 } from "react-icons/fa";
 import {
 	SiTypescript,
@@ -20,7 +21,8 @@ import {
 	SiExpress,
 	SiDocker,
 	SiMysql,
-	SiNpm
+	SiNpm,
+	SiOpenjdk
 } from "react-icons/si";
 
 const Habilidades = () => {
@@ -35,11 +37,13 @@ const Habilidades = () => {
 			typescript: <SiTypescript size={iconSize} className="text-[#3178C6]" />,
 			html: <FaHtml5 size={iconSize} className="text-[#E34F26]" />,
 			css: <FaCss3Alt size={iconSize} className="text-[#1572B6]" />,
+			php: <FaPhp size={iconSize} className="text-[#8892BF]" />,
 			tailwind: <SiTailwindcss size={iconSize} className="text-[#06B6D4]" />,
 			nextjs: <SiNextdotjs size={iconSize} className="text-white" />,
 			git: <FaGitAlt size={iconSize} className="text-[#F05032]" />,
 			github: <FaGithub size={iconSize} className="text-white" />,
 			python: <FaPython size={iconSize} className="text-[#3776AB]" />,
+			java: <SiOpenjdk size={iconSize} className="text-[#007396]" />,
 			mongodb: <SiMongodb size={iconSize} className="text-[#47A248]" />,
 			express: <SiExpress size={iconSize} className="text-white" />,
 			docker: <SiDocker size={iconSize} className="text-[#2496ED]" />,

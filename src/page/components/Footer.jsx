@@ -6,7 +6,7 @@ const Footer = () => {
 
 				<div className="flex gap-4">
 					<a
-						href="https://github.com/stark"
+						href="https://github.com/JuniorArias02"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="hover:text-white transition"
@@ -14,7 +14,7 @@ const Footer = () => {
 						GitHub
 					</a>
 					<a
-						href="https://linkedin.com/in/stark"
+						href="https://www.linkedin.com/in/juniorarias02/"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="hover:text-white transition"
@@ -22,7 +22,7 @@ const Footer = () => {
 						LinkedIn
 					</a>
 					<a
-						href="mailto:junistark@correo.com"
+						href="mailto:junior.arias02yt@gmail.com"
 						className="hover:text-white transition"
 					>
 						Contacto

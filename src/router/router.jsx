@@ -3,7 +3,9 @@ const RUTAS = {
 	PROYECTOS: "/proyectos",
 	HABILIDADES: "/habilidades",
 	CONTACTO: "/contacto",
-	GITHUB: "juniorArias02",
+	GITHUB: "/github",
+	GITHUB_VIEW: (repo, path) => `/github/${repo}/view/${encodeURIComponent(path)}`
+
 }
 
 export default RUTAS;

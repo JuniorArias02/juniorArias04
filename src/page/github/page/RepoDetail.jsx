@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
 	FiFolder,
@@ -11,16 +11,20 @@ import {
 	FiExternalLink
 } from "react-icons/fi";
 import { getRepoContents, handleViewFile } from "../../../services/githubApi/githubService";
-import RUTAS from "../../../router/router";
+
 
 const RepoDetail = () => {
 	const { repoName } = useParams();
 	const [files, setFiles] = useState([]);
-	const [currentPath, setCurrentPath] = useState("");
 	const [isLoading, setIsLoading] = useState(true);
 	const navigate = useNavigate();
 	const [selectedFileContent, setSelectedFileContent] = useState(null);
 	const [viewingFile, setViewingFile] = useState(null);
+	const location = useLocation();
+	const [searchParams] = useSearchParams();
+	const initialPath = searchParams.get("path") || "";
+	const [currentPath, setCurrentPath] = useState(initialPath);
+
 
 	const onViewFile = async (file) => {
 		const content = await handleViewFile(file, import.meta.env.VITE_GITHUB_TOKEN);
@@ -50,12 +54,15 @@ const RepoDetail = () => {
 		setCurrentPath((prev) => `${prev ? `${prev}/` : ""}${folder}`);
 	};
 
+	useEffect(() => {
+		navigate(`/github/${repoName}?path=${encodeURIComponent(currentPath)}`, { replace: true });
+	}, [currentPath]);
 
 
 	const handleOpenFilePage = (file) => {
 		if (file.type !== "file") return;
 		const fullPath = `${currentPath ? `${currentPath}/` : ""}${file.name}`;
-		navigate(RUTAS.GITHUB_VIEW(repoName, fullPath));
+		navigate(`/github/${repoName}/view?path=${encodeURIComponent(fullPath)}`);
 	};
 
 
@@ -78,27 +85,47 @@ const RepoDetail = () => {
 			{/* Breadcrumbs y navegación */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
 				<div className="flex items-center gap-2">
-					<motion.button
-						whileHover={{ x: -2 }}
-						whileTap={{ scale: 0.95 }}
-						onClick={goToMainGithub}
-						className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
-					>
-						<FiArrowLeft size={18} />
-						<span>Volver a repositorios</span>
-					</motion.button>
-
-					{currentPath && (
+					{!currentPath ? (
+						// Si estás en raíz del repo
 						<motion.button
 							whileHover={{ x: -2 }}
 							whileTap={{ scale: 0.95 }}
-							onClick={() => setCurrentPath("")}
-							className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors ml-4"
+							onClick={goToMainGithub}
+							className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
 						>
-							<FiHome size={18} />
-							<span>Inicio</span>
+							<FiArrowLeft size={18} />
+							<span>Volver a repositorios</span>
 						</motion.button>
+					) : (
+						<>
+							{/* Retroceder */}
+							<motion.button
+								whileHover={{ x: -2 }}
+								whileTap={{ scale: 0.95 }}
+								onClick={() => {
+									const pathParts = currentPath.split("/");
+									pathParts.pop();
+									setCurrentPath(pathParts.join("/"));
+								}}
+								className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors"
+							>
+								<FiArrowLeft size={18} />
+								<span>Retroceder</span>
+							</motion.button>
+
+							{/* Ir a raíz del repo */}
+							<motion.button
+								whileHover={{ x: -2 }}
+								whileTap={{ scale: 0.95 }}
+								onClick={() => setCurrentPath("")}
+								className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors ml-4"
+							>
+								<FiHome size={18} />
+								<span>Inicio</span>
+							</motion.button>
+						</>
 					)}
+
 				</div>
 
 				<div className="flex items-center text-sm text-gray-400 bg-gray-800/50 px-3 py-2 rounded-lg">

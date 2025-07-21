@@ -1,4 +1,5 @@
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -18,15 +19,14 @@ const FileViewer = () => {
   const { repoName } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const filePath = decodeURIComponent(location.pathname.split(`/view/`)[1]);
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const filePath = searchParams.get("path") || "";
   const fileExtension = filePath.split('.').pop();
-  const fileName = filePath.split('/').pop();
 
-  // Detectamos el lenguaje para resaltado de sintaxis
   const getLanguage = (extension) => {
     const languages = {
       js: 'javascript',
@@ -55,10 +55,25 @@ const FileViewer = () => {
   };
 
   useEffect(() => {
+    setContent("");
+
     const fetchFile = async () => {
+      setLoading(true);
       try {
+        if (!filePath) {
+          setContent(null);
+          setLoading(false);
+          return;
+        }
+
         const text = await getFileContent(repoName, filePath);
-        setContent(text);
+
+        if (text === null) {
+          navigate(`/github/${repoName}`);
+          return;
+        }
+
+        setContent(text || "// Este archivo está vacío 🫥");
       } catch (err) {
         setContent("// No se pudo cargar el archivo 😢\n" + err.message);
       } finally {
@@ -67,7 +82,10 @@ const FileViewer = () => {
     };
 
     fetchFile();
-  }, [repoName, filePath]);
+  }, [repoName, filePath, navigate]);
+
+
+
 
   // Efecto para el mensaje de copiado
   useEffect(() => {
@@ -109,33 +127,36 @@ const FileViewer = () => {
           <motion.button
             whileHover={{ x: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              const pathParts = filePath.split("/");
+              if (pathParts.length === 0) return;
+
+              pathParts.pop(); // quitamos el archivo actual
+              const newPath = pathParts.join("/");
+
+              navigate(`/github/${repoName}?path=${encodeURIComponent(newPath)}`);
+            }}
             className="flex items-center gap-1 md:gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             <FiChevronLeft size={isMobile ? 16 : 20} />
-            {!isMobile && <span>Volver</span>}
+            {!isMobile && <span>Retroceder</span>}
           </motion.button>
-          
-          {!isMobile && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-400">Repositorio:</span>
-              <span className="font-mono text-emerald-400 truncate max-w-xs">{repoName}</span>
-            </div>
-          )}
+
+
         </div>
 
         {/* Menú móvil */}
         {isMobile ? (
           <div className="relative">
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-300 p-1"
             >
               {mobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
             </button>
-            
+
             {mobileMenuOpen && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10 w-48"
@@ -149,7 +170,7 @@ const FileViewer = () => {
                   <FiExternalLink size={16} />
                   <span>Abrir en GitHub</span>
                 </a>
-                
+
                 <CopyToClipboard
                   text={content}
                   onCopy={() => {
@@ -162,14 +183,14 @@ const FileViewer = () => {
                     <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
                   </button>
                 </CopyToClipboard>
-                
+
                 <button
                   onClick={() => {
                     const blob = new Blob([content], { type: 'text/plain' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = fileName;
+                    a.download = filePath;
                     a.click();
                     setMobileMenuOpen(false);
                   }}
@@ -209,7 +230,7 @@ const FileViewer = () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = fileName;
+                a.download = filePath;
                 a.click();
               }}
               className="flex items-center gap-1 md:gap-2 text-gray-300 hover:text-emerald-400 transition-colors text-sm md:text-base"
@@ -249,8 +270,8 @@ const FileViewer = () => {
             style={dracula}
             showLineNumbers={!isMobile}
             wrapLines
-            lineNumberStyle={{ 
-              color: '#6B7280', 
+            lineNumberStyle={{
+              color: '#6B7280',
               minWidth: isMobile ? '1.5em' : '2.5em',
               paddingRight: isMobile ? '0.5em' : '1em'
             }}

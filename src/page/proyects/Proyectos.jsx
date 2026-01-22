@@ -1,19 +1,19 @@
 import { proyectos } from "../../backend/data/proyectos.json";
 import { motion } from "framer-motion";
 import { FiExternalLink, FiGithub, FiCode } from "react-icons/fi";
-import { 
-  FaReact, 
-  FaNodeJs, 
-  FaJs, 
+import {
+  FaReact,
+  FaNodeJs,
+  FaJs,
   FaHtml5,
   FaCss3Alt,
   FaGitAlt,
   FaPython,
   FaDatabase
 } from "react-icons/fa";
-import { 
-  SiTypescript, 
-  SiTailwindcss, 
+import {
+  SiTypescript,
+  SiTailwindcss,
   SiNextdotjs,
   SiMongodb,
   SiExpress,
@@ -81,8 +81,8 @@ const Proyectos = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
                 <div className="flex flex-wrap gap-2">
                   {proyecto.tecnologias.map((tech, index) => (
-                    <span 
-                      key={index} 
+                    <span
+                      key={index}
                       className="text-xs bg-gray-800/90 text-gray-100 px-2 py-1 rounded-md flex items-center gap-1"
                     >
                       {getTechIcon(tech)}
@@ -128,11 +128,10 @@ const Proyectos = () => {
               {/* Metadatos del proyecto */}
               <div className="mt-3 flex flex-wrap gap-2">
                 {proyecto.estado && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    proyecto.estado === "Completado" 
-                      ? "bg-emerald-900/50 text-emerald-400" 
+                  <span className={`text-xs px-2 py-1 rounded-full ${proyecto.estado === "Completado"
+                      ? "bg-emerald-900/50 text-emerald-400"
                       : "bg-yellow-900/50 text-yellow-400"
-                  }`}>
+                    }`}>
                     {proyecto.estado}
                   </span>
                 )}
@@ -159,6 +158,15 @@ const Proyectos = () => {
                   <p className="text-sm text-indigo-300 mt-1">
                     {proyecto.team} + Junior Dev
                   </p>
+                </div>
+              )}
+
+              {proyecto.paginaTeam && proyecto.paginaTeam !== "None" && (
+                <div className="mt-3 pt-3 border-t border-gray-700/50">
+                  <p className="text-xs text-gray-400">Pagina Empresa:</p>
+                  <a href={proyecto.paginaTeam} className="text-sm text-indigo-300 mt-1" target="_blank" rel="pagina empresa">
+                    {proyecto.paginaTeam}
+                  </a>
                 </div>
               )}
 

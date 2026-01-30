@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
 	FiGithub,
 	FiStar,
@@ -7,53 +7,51 @@ import {
 	FiEye,
 	FiCode,
 	FiChevronRight,
-	FiArrowLeft
+	FiUsers,
+	FiBookOpen,
+	FiExternalLink
 } from "react-icons/fi";
 import {
-	PieChart,
-	Pie,
-	Cell,
-	Tooltip,
 	ResponsiveContainer,
 	BarChart,
 	Bar,
 	XAxis,
 	YAxis,
-	CartesianGrid
+	Tooltip,
+	Cell
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { getUserData, getRepos, getLanguages } from "../../services/githubApi/githubService";
 
 const COLORS = [
-	"#6366f1", // indigo-500
-	"#10b981", // emerald-500
-	"#f59e0b", // amber-500
-	"#f97316", // orange-500
-	"#8b5cf6", // violet-500
-	"#ec4899", // pink-500
-	"#14b8a6", // teal-500
+	"#818cf8", // indigo-400
+	"#34d399", // emerald-400
+	"#fbbf24", // amber-400
+	"#f472b6", // pink-400
+	"#a78bfa", // violet-400
+	"#2dd4bf", // teal-400
 ];
 
 const Github = () => {
 	const [userData, setUserData] = useState(null);
 	const [repos, setRepos] = useState([]);
 	const [languagesData, setLanguagesData] = useState([]);
-	const [activeTab, setActiveTab] = useState("repos");
 	const [filter, setFilter] = useState("all");
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchData = async () => {
-			const [user, repos] = await Promise.all([
+			const [user, reposData] = await Promise.all([
 				getUserData(),
 				getRepos()
 			]);
 
-			const langs = await getLanguages(repos);
-
-			setUserData(user);
-			setRepos(repos.sort((a, b) => b.stargazers_count - a.stargazers_count));
-			setLanguagesData(langs);
+			if (user && reposData) {
+				const langs = await getLanguages(reposData);
+				setUserData(user);
+				setRepos(reposData.sort((a, b) => b.stargazers_count - a.stargazers_count));
+				setLanguagesData(langs);
+			}
 		};
 
 		fetchData();
@@ -61,13 +59,14 @@ const Github = () => {
 
 	if (!userData) {
 		return (
-			<div className="min-h-screen bg-gray-900 flex items-center justify-center">
+			<div className="min-h-screen bg-gray-950 flex items-center justify-center relative overflow-hidden">
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-gray-900 to-gray-950"></div>
 				<motion.div
 					animate={{ rotate: 360 }}
 					transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-					className="text-indigo-400"
+					className="text-indigo-500 relative z-10"
 				>
-					<FiGithub size={48} />
+					<FiGithub size={64} />
 				</motion.div>
 			</div>
 		);
@@ -80,187 +79,229 @@ const Github = () => {
 		return true;
 	});
 
+	const stats = [
+		{ label: "Repositorios", value: userData.public_repos, icon: FiBookOpen, color: "text-blue-400", bg: "bg-blue-500/10" },
+		{ label: "Seguidores", value: userData.followers, icon: FiUsers, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+		{ label: "Siguiendo", value: userData.following, icon: FiUsers, color: "text-purple-400", bg: "bg-purple-500/10" },
+	];
+
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
-			className="min-h-screen bg-gray-900 p-6 md:p-8 lg:p-12"
+			className="min-h-screen bg-gray-950 text-gray-100 relative overflow-hidden"
 		>
-			{/* Perfil con animación */}
-			<motion.div
-				initial={{ y: -20, opacity: 0 }}
-				animate={{ y: 0, opacity: 1 }}
-				transition={{ duration: 0.5 }}
-				className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-10"
-			>
-				<motion.div whileHover={{ scale: 1.05 }}>
-					<img
-						src={userData.avatar_url}
-						alt="avatar"
-						className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-indigo-400/30 hover:border-indigo-400 transition-all"
-					/>
-				</motion.div>
+			{/* Background Elements */}
+			<div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none" />
+			<div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+			<div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-				<div>
-					<h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-						{userData.name}
-					</h1>
-					<p className="text-lg text-gray-300 mt-2">{userData.bio}</p>
+			<div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
 
-					<div className="flex flex-wrap gap-4 mt-4">
-						<a
-							href={userData.html_url}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-2 text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors"
-						>
-							<FiGithub /> Ver perfil en GitHub
-						</a>
+				{/* Hero Section */}
+				<motion.div
+					initial={{ y: 20, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-16"
+				>
+					<motion.div
+						whileHover={{ scale: 1.02 }}
+						className="relative group"
+					>
+						<div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200"></div>
+						<img
+							src={userData.avatar_url}
+							alt={userData.name}
+							className="relative w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-900 shadow-2xl"
+						/>
+					</motion.div>
 
-						<div className="flex items-center gap-2 text-sm text-gray-400">
-							<FiEye /> {userData.followers} seguidores • {userData.following} siguiendo
+					<div className="text-center md:text-left flex-1">
+						<h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+							{userData.name}
+						</h1>
+						<div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-gray-400 mb-6 font-mono text-sm">
+							<span className="text-indigo-400">@{userData.login}</span>
+							<span className="hidden md:inline">•</span>
+							<span>{userData.location || "Sin ubicación"}</span>
+						</div>
+						<p className="text-lg text-gray-300 max-w-2xl mb-6 leading-relaxed">
+							{userData.bio || "Desarrollador apasionado construyendo el futuro de la web."}
+						</p>
+
+						<div className="flex flex-wrap gap-4 justify-center md:justify-start">
+							<a
+								href={userData.html_url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl backdrop-blur-md transition-all border border-white/10 hover:border-white/20 font-medium"
+							>
+								<FiGithub size={20} /> Visitar Perfil
+							</a>
+							{userData.blog && (
+								<a
+									href={userData.blog.startsWith('http') ? userData.blog : `https://${userData.blog}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center gap-2 text-gray-400 hover:text-white px-6 py-3 rounded-xl transition-all border border-transparent hover:border-gray-800"
+								>
+									<FiExternalLink /> Website
+								</a>
+							)}
 						</div>
 					</div>
-				</div>
-			</motion.div>
-
-			{/* Stats con gráficos mejorados */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.2 }}
-				className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12"
-			>
-				{/* Tarjeta de repos */}
-				<motion.div
-					whileHover={{ y: -5 }}
-					className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-indigo-400/30 transition-all"
-				>
-					<h2 className="text-lg font-semibold text-gray-300 mb-2">Repositorios públicos</h2>
-					<div className="flex items-end gap-2">
-						<span className="text-4xl font-bold text-indigo-400">{userData.public_repos}</span>
-						<span className="text-gray-400 text-sm mb-1">repositorios</span>
-					</div>
 				</motion.div>
 
-				{/* Gráfico de lenguajes */}
-				<motion.div
-					whileHover={{ y: -5 }}
-					className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700 hover:border-emerald-400/30 transition-all lg:col-span-2"
-				>
-					<h2 className="text-lg font-semibold text-gray-300 mb-4">Lenguajes más usados</h2>
-					<div className="h-[250px]">
-						<ResponsiveContainer width="100%" height="100%">
-							<BarChart
-								data={languagesData}
-								layout="vertical"
-								margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-							>
-								<CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-								<XAxis type="number" stroke="#9CA3AF" />
-								<YAxis
-									dataKey="name"
-									type="category"
-									stroke="#9CA3AF"
-									width={80}
-									tickFormatter={(value) => value.length > 10 ? `${value.substring(0, 8)}...` : value}
-								/>
-								<Tooltip
-									contentStyle={{
-										background: '#1F2937',
-										borderColor: '#4B5563',
-										borderRadius: '0.5rem'
-									}}
-								/>
-								<Bar dataKey="value" fill="#8884d8" animationDuration={1500}>
-									{languagesData.map((entry, index) => (
-										<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-									))}
-								</Bar>
-							</BarChart>
-						</ResponsiveContainer>
-					</div>
-				</motion.div>
-			</motion.div>
-
-			{/* Filtros y tabs */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.3 }}
-				className="mb-6"
-			>
-				<div className="flex flex-wrap gap-4 mb-6">
-					<button
-						onClick={() => setFilter("all")}
-						className={`px-4 py-2 rounded-lg transition-all ${filter === "all"
-								? "bg-indigo-600 text-white"
-								: "bg-gray-800 text-gray-300 hover:bg-gray-700"
-							}`}
-					>
-						Todos
-					</button>
-					<button
-						onClick={() => setFilter("stars")}
-						className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${filter === "stars"
-								? "bg-amber-600 text-white"
-								: "bg-gray-800 text-gray-300 hover:bg-gray-700"
-							}`}
-					>
-						<FiStar /> Destacados
-					</button>
-					<button
-						onClick={() => setFilter("forks")}
-						className={`px-4 py-2 rounded-lg transition-all flex items-center gap-2 ${filter === "forks"
-								? "bg-emerald-600 text-white"
-								: "bg-gray-800 text-gray-300 hover:bg-gray-700"
-							}`}
-					>
-						<FiGitBranch /> Con forks
-					</button>
-				</div>
-
-				{/* Lista de repositorios */}
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{filteredRepos.map((repo) => (
+				{/* Stats Grid */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+					{stats.map((stat, index) => (
 						<motion.div
-							key={repo.id}
-							initial={{ opacity: 0, y: 10 }}
+							key={stat.label}
+							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: index * 0.1 }}
 							whileHover={{ y: -5 }}
-							transition={{ type: "spring", stiffness: 300 }}
-							onClick={() => navigate(`/github/${repo.name}`)}
-							className="bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-gray-700 hover:border-indigo-400/50 cursor-pointer transition-all group"
+							className="bg-gray-900/40 backdrop-blur-md border border-gray-800/50 p-6 rounded-2xl flex items-center justify-between group hover:border-indigo-500/30 transition-all shadow-lg"
 						>
-							<div className="flex justify-between items-start">
-								<div>
-									<h3 className="text-lg font-semibold text-indigo-400 group-hover:text-indigo-300 transition-colors">
-										{repo.name}
-									</h3>
-									<p className="text-sm text-gray-400 mt-1 line-clamp-2">
-										{repo.description || "Sin descripción"}
-									</p>
-								</div>
-								<FiChevronRight className="text-gray-500 group-hover:text-indigo-400 transition-colors mt-1" />
+							<div>
+								<p className="text-gray-400 text-sm font-medium mb-1">{stat.label}</p>
+								<p className="text-3xl font-bold text-white group-hover:text-indigo-200 transition-colors">
+									{stat.value}
+								</p>
 							</div>
-
-							<div className="flex flex-wrap gap-3 mt-4 pt-3 border-t border-gray-700/50">
-								{repo.language && (
-									<span className="flex items-center gap-1 text-xs bg-gray-700/50 text-emerald-400 px-2 py-1 rounded-full">
-										<FiCode size={12} /> {repo.language}
-									</span>
-								)}
-								<span className="flex items-center gap-1 text-xs bg-gray-700/50 text-amber-400 px-2 py-1 rounded-full">
-									<FiStar size={12} /> {repo.stargazers_count}
-								</span>
-								<span className="flex items-center gap-1 text-xs bg-gray-700/50 text-violet-400 px-2 py-1 rounded-full">
-									<FiGitBranch size={12} /> {repo.forks_count}
-								</span>
+							<div className={`p-4 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
+								<stat.icon size={24} />
 							</div>
 						</motion.div>
 					))}
 				</div>
-			</motion.div>
+
+				{/* Content Grid (Charts & Repos) */}
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+					{/* Left Column: Languages Chart */}
+					<motion.div
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						className="lg:col-span-1"
+					>
+						<div className="bg-gray-900/40 backdrop-blur-md border border-gray-800/50 rounded-3xl p-6 h-full sticky top-8">
+							<h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+								<FiCode className="text-indigo-400" /> Lenguajes Top
+							</h3>
+							<div className="h-[400px]">
+								<ResponsiveContainer width="100%" height="100%">
+									<BarChart
+										data={languagesData}
+										layout="vertical"
+										margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+									>
+										<XAxis type="number" hide />
+										<YAxis
+											dataKey="name"
+											type="category"
+											axisLine={false}
+											tickLine={false}
+											width={100}
+											tick={{ fill: '#9ca3af', fontSize: 12 }}
+										/>
+										<Tooltip
+											cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+											contentStyle={{ bg: '#111827', border: '1px solid #374151', borderRadius: '0.5rem' }}
+										/>
+										<Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+											{languagesData.map((entry, index) => (
+												<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+											))}
+										</Bar>
+									</BarChart>
+								</ResponsiveContainer>
+							</div>
+						</div>
+					</motion.div>
+
+					{/* Right Column: Repositories */}
+					<div className="lg:col-span-2">
+
+						{/* Filters */}
+						<div className="flex overflow-x-auto pb-4 gap-3 mb-6 no-scrollbar">
+							{['all', 'stars', 'forks'].map((f) => (
+								<button
+									key={f}
+									onClick={() => setFilter(f)}
+									className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${filter === f
+											? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
+											: 'bg-gray-800/50 text-gray-400 hover:bg-gray-800 hover:text-white border border-gray-700/50'
+										}`}
+								>
+									{f === 'all' && 'Todos los repos'}
+									{f === 'stars' && '🔥 Más populares'}
+									{f === 'forks' && '🚀 Con forks'}
+								</button>
+							))}
+						</div>
+
+						<motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<AnimatePresence>
+								{filteredRepos.map((repo) => (
+									<motion.div
+										layout
+										key={repo.id}
+										initial={{ opacity: 0, scale: 0.9 }}
+										animate={{ opacity: 1, scale: 1 }}
+										exit={{ opacity: 0, scale: 0.9 }}
+										whileHover={{ y: -4 }}
+										onClick={() => navigate(`/github/${repo.name}`)}
+										className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 p-5 rounded-2xl cursor-pointer hover:bg-gray-800/50 hover:border-indigo-500/30 transition-all group relative overflow-hidden"
+									>
+										<div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-bl-full pointer-events-none" />
+
+										<div className="flex justify-between items-start mb-3">
+											<div className="bg-gray-700/30 p-2 rounded-lg text-indigo-400 group-hover:text-white group-hover:bg-indigo-500 transition-all">
+												<FiBookOpen size={20} />
+											</div>
+											<div className="flex gap-2">
+												{repo.stargazers_count > 0 && (
+													<span className="flex items-center gap-1 text-xs font-semibold bg-amber-500/10 text-amber-400 px-2 py-1 rounded-md">
+														<FiStar size={10} /> {repo.stargazers_count}
+													</span>
+												)}
+												{repo.forks_count > 0 && (
+													<span className="flex items-center gap-1 text-xs font-semibold bg-violet-500/10 text-violet-400 px-2 py-1 rounded-md">
+														<FiGitBranch size={10} /> {repo.forks_count}
+													</span>
+												)}
+											</div>
+										</div>
+
+										<h3 className="text-lg font-bold text-gray-200 group-hover:text-indigo-300 transition-colors mb-2 truncate">
+											{repo.name}
+										</h3>
+
+										<p className="text-sm text-gray-400 line-clamp-2 mb-4 h-10">
+											{repo.description || "Sin descripción disponible para este repositorio."}
+										</p>
+
+										<div className="flex items-center justify-between pt-4 border-t border-gray-700/30">
+											<div className="flex items-center gap-2">
+												{repo.language && (
+													<span className="flex items-center gap-1.5 text-xs text-gray-400">
+														<span className="w-2 h-2 rounded-full bg-emerald-400" />
+														{repo.language}
+													</span>
+												)}
+											</div>
+											<span className="text-xs text-indigo-400 group-hover:translate-x-1 transition-transform flex items-center gap-1">
+												Ver detalles <FiChevronRight />
+											</span>
+										</div>
+									</motion.div>
+								))}
+							</AnimatePresence>
+						</motion.div>
+					</div>
+				</div>
+			</div>
 		</motion.div>
 	);
 };

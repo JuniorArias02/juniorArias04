@@ -1,78 +1,54 @@
-import { useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiChevronLeft,
   FiExternalLink,
   FiCopy,
   FiDownload,
-  FiMenu,
-  FiX
+  FiCheck,
+  FiCode,
+  FiMaximize2
 } from "react-icons/fi";
 import { getFileContent } from "../../../../services/githubApi/githubService";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const FileViewer = () => {
   const { repoName } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const filePath = searchParams.get("path") || "";
-  const fileExtension = filePath.split('.').pop();
+  const fileName = filePath.split('/').pop();
+  const fileExtension = fileName.split('.').pop();
 
   const getLanguage = (extension) => {
     const languages = {
-      js: 'javascript',
-      jsx: 'javascript',
-      ts: 'typescript',
-      tsx: 'typescript',
-      py: 'python',
-      java: 'java',
-      c: 'c',
-      cpp: 'cpp',
-      html: 'html',
-      css: 'css',
-      json: 'json',
-      md: 'markdown',
-      sh: 'bash',
-      yml: 'yaml',
-      yaml: 'yaml',
-      go: 'go',
-      rs: 'rust',
-      php: 'php',
-      rb: 'ruby',
-      cs: 'csharp',
-      sql: 'sql',
+      js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
+      py: 'python', java: 'java', html: 'html', css: 'css', json: 'json',
+      md: 'markdown', sh: 'bash', yml: 'yaml', yaml: 'yaml', sql: 'sql',
+      rs: 'rust', go: 'go', php: 'php'
     };
     return languages[extension] || 'plaintext';
   };
 
   useEffect(() => {
-    setContent("");
-
     const fetchFile = async () => {
       setLoading(true);
       try {
         if (!filePath) {
           setContent(null);
-          setLoading(false);
           return;
         }
-
         const text = await getFileContent(repoName, filePath);
-
         if (text === null) {
           navigate(`/github/${repoName}`);
           return;
         }
-
         setContent(text || "// Este archivo está vacío 🫥");
       } catch (err) {
         setContent("// No se pudo cargar el archivo 😢\n" + err.message);
@@ -80,14 +56,9 @@ const FileViewer = () => {
         setLoading(false);
       }
     };
-
     fetchFile();
   }, [repoName, filePath, navigate]);
 
-
-
-
-  // Efecto para el mensaje de copiado
   useEffect(() => {
     if (copied) {
       const timer = setTimeout(() => setCopied(false), 2000);
@@ -95,200 +66,170 @@ const FileViewer = () => {
     }
   }, [copied]);
 
-  // Manejar redimensionamiento
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
+  const handleDownload = () => {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const isMobile = windowSize.width < 768;
+  const handleGoBack = () => {
+    const pathParts = filePath.split("/");
+    if (pathParts.length > 0) {
+      pathParts.pop();
+      const newPath = pathParts.join("/");
+      navigate(`/github/${repoName}?path=${encodeURIComponent(newPath)}`);
+    } else {
+      navigate(`/github/${repoName}`);
+    }
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-gray-900 text-white min-h-screen"
+      className="bg-gray-950 text-white min-h-screen p-4 md:p-8 flex items-center justify-center relative overflow-hidden"
     >
-      {/* Barra superior del editor */}
-      <div className="bg-gray-800 border-b border-gray-700 p-3 md:p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2 md:gap-4">
-          <motion.button
-            whileHover={{ x: -2 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const pathParts = filePath.split("/");
-              if (pathParts.length === 0) return;
+      {/* Background Ambient Effects */}
+      <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-indigo-900/10 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
 
-              pathParts.pop(); // quitamos el archivo actual
-              const newPath = pathParts.join("/");
+      <div className="w-full max-w-6xl relative z-10 flex flex-col h-[90vh]">
 
-              navigate(`/github/${repoName}?path=${encodeURIComponent(newPath)}`);
-            }}
-            className="flex items-center gap-1 md:gap-2 text-indigo-400 hover:text-indigo-300 transition-colors"
+        {/* Navigation & Breadcrumbs */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex items-center gap-4 mb-6"
+        >
+          <button
+            onClick={handleGoBack}
+            className="p-2 rounded-lg bg-gray-900/50 hover:bg-gray-800 text-gray-400 hover:text-white transition-colors border border-gray-800"
           >
-            <FiChevronLeft size={isMobile ? 16 : 20} />
-            {!isMobile && <span>Retroceder</span>}
-          </motion.button>
+            <FiChevronLeft size={20} />
+          </button>
+          <div className="text-gray-400 font-mono text-sm">
+            <span className="text-indigo-400">{repoName}</span>
+            <span className="mx-2">/</span>
+            <span className="text-gray-200">{filePath}</span>
+          </div>
+        </motion.div>
 
+        {/* IDE UI Container */}
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="flex-1 bg-[#1e222a] rounded-2xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col relative"
+        >
+          {/* Window Title Bar */}
+          <div className="bg-[#1e222a] border-b border-gray-800 p-4 flex items-center justify-between">
 
-        </div>
+            {/* Mac-style Buttons */}
+            <div className="flex items-center gap-2 w-24">
+              <div className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 transition-colors" />
+              <div className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 transition-colors" />
+              <div className="w-3 h-3 rounded-full bg-emerald-500/80 hover:bg-emerald-500 transition-colors" />
+            </div>
 
-        {/* Menú móvil */}
-        {isMobile ? (
-          <div className="relative">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-300 p-1"
-            >
-              {mobileMenuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
-            </button>
+            {/* Filename */}
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-400 font-mono bg-black/20 px-4 py-1.5 rounded-full border border-white/5">
+              <FiCode size={14} className="text-indigo-400" />
+              <span>{fileName}</span>
+            </div>
 
-            {mobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute right-0 top-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10 w-48"
-              >
-                <a
-                  href={`https://github.com/${repoName}/blob/main/${filePath}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:bg-gray-700 transition-colors"
-                >
-                  <FiExternalLink size={16} />
-                  <span>Abrir en GitHub</span>
-                </a>
-
-                <CopyToClipboard
-                  text={content}
-                  onCopy={() => {
-                    setCopied(true);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <button className="w-full flex items-center gap-2 px-4 py-2 text-gray-300 hover:bg-gray-700 transition-colors">
-                    <FiCopy size={16} />
-                    <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
-                  </button>
-                </CopyToClipboard>
-
+            {/* Actions */}
+            <div className="flex items-center gap-2 w-24 justify-end">
+              <CopyToClipboard text={content} onCopy={() => setCopied(true)}>
                 <button
-                  onClick={() => {
-                    const blob = new Blob([content], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filePath;
-                    a.click();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-gray-300 hover:bg-gray-700 transition-colors"
+                  className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors relative group"
+                  title="Copiar código"
                 >
-                  <FiDownload size={16} />
-                  <span>Descargar</span>
+                  {copied ? <FiCheck className="text-emerald-400" /> : <FiCopy />}
+                  {copied && (
+                    <span className="absolute -bottom-8 right-0 text-xs bg-emerald-500 text-white px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                      Copiado!
+                    </span>
+                  )}
                 </button>
-              </motion.div>
+              </CopyToClipboard>
+
+              <button
+                onClick={handleDownload}
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                title="Descargar archivo"
+              >
+                <FiDownload />
+              </button>
+
+              <a
+                href={`https://github.com/${repoName}/blob/main/${filePath}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                title="Abrir en GitHub"
+              >
+                <FiExternalLink />
+              </a>
+            </div>
+          </div>
+
+          {/* Code Content */}
+          <div className="flex-1 overflow-auto custom-scrollbar relative bg-[#282c34]">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-gray-500 text-sm font-mono">Cargando contenido...</p>
+                </div>
+              </div>
+            ) : (
+              <SyntaxHighlighter
+                language={getLanguage(fileExtension)}
+                style={atomDark}
+                showLineNumbers={true}
+                customStyle={{
+                  margin: 0,
+                  padding: '1.5rem',
+                  background: 'transparent',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.6',
+                  fontFamily: "'Fira Code', 'JetBrains Mono', monospace",
+                }}
+                lineNumberStyle={{
+                  minWidth: '3rem',
+                  paddingRight: '1.5rem',
+                  color: '#4b5563',
+                  textAlign: 'right'
+                }}
+                wrapLines={true}
+              >
+                {content}
+              </SyntaxHighlighter>
             )}
           </div>
-        ) : (
-          <div className="flex items-center gap-2 md:gap-4">
-            <a
-              href={`https://github.com/${repoName}/blob/main/${filePath}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 md:gap-2 text-gray-300 hover:text-indigo-400 transition-colors text-sm md:text-base"
-            >
-              <FiExternalLink size={isMobile ? 16 : 18} />
-              <span>Abrir en GitHub</span>
-            </a>
 
-            <CopyToClipboard
-              text={content}
-              onCopy={() => setCopied(true)}
-            >
-              <button className="flex items-center gap-1 md:gap-2 text-gray-300 hover:text-amber-400 transition-colors text-sm md:text-base">
-                <FiCopy size={isMobile ? 16 : 18} />
-                <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
-              </button>
-            </CopyToClipboard>
-
-            <button
-              onClick={() => {
-                const blob = new Blob([content], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filePath;
-                a.click();
-              }}
-              className="flex items-center gap-1 md:gap-2 text-gray-300 hover:text-emerald-400 transition-colors text-sm md:text-base"
-            >
-              <FiDownload size={isMobile ? 16 : 18} />
-              <span>Descargar</span>
-            </button>
+          {/* Status Bar */}
+          <div className="bg-[#191d24] text-xs text-gray-500 p-2 px-4 flex justify-between items-center border-t border-gray-800 font-mono select-none">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Ready
+              </span>
+              <span>UTF-8</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="uppercase text-indigo-400">{getLanguage(fileExtension)}</span>
+              <span>Read Only</span>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Ruta del archivo */}
-      <div className="bg-gray-800/50 px-3 md:px-6 py-2 md:py-3 border-b border-gray-700 overflow-x-auto">
-        <div className="font-mono text-xs md:text-sm text-gray-300 flex items-center gap-1 min-w-max">
-          {filePath.split('/').map((part, index, arr) => (
-            <span key={index} className="flex items-center">
-              {index > 0 && <span className="mx-1 text-gray-500">/</span>}
-              {index === arr.length - 1 ? (
-                <span className="text-indigo-400">{part}</span>
-              ) : (
-                <span>{part}</span>
-              )}
-            </span>
-          ))}
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Contenido del archivo */}
-      {loading ? (
-        <div className="p-4 md:p-8 flex justify-center">
-          <div className="animate-pulse text-gray-400">Cargando archivo...</div>
-        </div>
-      ) : (
-        <div className="relative">
-          <SyntaxHighlighter
-            language={getLanguage(fileExtension)}
-            style={dracula}
-            showLineNumbers={!isMobile}
-            wrapLines
-            lineNumberStyle={{
-              color: '#6B7280',
-              minWidth: isMobile ? '1.5em' : '2.5em',
-              paddingRight: isMobile ? '0.5em' : '1em'
-            }}
-            customStyle={{
-              margin: 0,
-              padding: isMobile ? '1rem' : '1.5rem',
-              background: '#111827',
-              height: isMobile ? 'calc(100vh - 90px)' : 'calc(100vh - 110px)',
-              overflow: 'auto',
-              fontSize: isMobile ? '0.8rem' : '0.9rem',
-              lineHeight: isMobile ? '1.4' : '1.5'
-            }}
-          >
-            {content}
-          </SyntaxHighlighter>
-        </div>
-      )}
+      </div>
     </motion.div>
   );
 };

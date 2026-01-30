@@ -1,96 +1,179 @@
 import { motion } from "framer-motion";
-import { FiAlertTriangle, FiArrowLeft } from "react-icons/fi";
+import { FiAlertTriangle, FiPower, FiTerminal, FiCpu } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+
+const GlitchText = ({ text }) => {
+  return (
+    <div className="relative inline-block">
+      <motion.span
+        className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-500 to-pink-600 font-black tracking-tighter"
+        initial={{ skew: 0 }}
+        animate={{
+          skew: [0, -5, 5, 0],
+          x: [0, 2, -2, 0]
+        }}
+        transition={{
+          duration: 0.5,
+          repeat: Infinity,
+          repeatType: "mirror",
+          repeatDelay: 2
+        }}
+      >
+        {text}
+      </motion.span>
+      <motion.span
+        className="absolute top-0 left-0 -z-10 text-red-600 opacity-70 blur-[1px]"
+        animate={{
+          x: [0, -3, 3, 0],
+          opacity: [0.7, 0.4, 0.7]
+        }}
+        transition={{
+          duration: 0.2,
+          repeat: Infinity,
+          repeatType: "mirror"
+        }}
+      >
+        {text}
+      </motion.span>
+      <motion.span
+        className="absolute top-0 left-0 -z-10 text-cyan-400 opacity-70 blur-[1px]"
+        animate={{
+          x: [0, 3, -3, 0],
+          opacity: [0.7, 0.4, 0.7]
+        }}
+        transition={{
+          duration: 0.3,
+          repeat: Infinity,
+          repeatType: "mirror"
+        }}
+      >
+        {text}
+      </motion.span>
+    </div>
+  );
+};
+
+const TerminalLoader = () => {
+  const [lines, setLines] = useState([
+    "> System check initiated...",
+    "> Verifying route integrity...",
+  ]);
+
+  useEffect(() => {
+    const timeout1 = setTimeout(() => {
+      setLines(prev => [...prev, "> Error: Route not found [404]"]);
+    }, 800);
+
+    const timeout2 = setTimeout(() => {
+      setLines(prev => [...prev, "> Status: Critical Failure"]);
+    }, 1600);
+
+    const timeout3 = setTimeout(() => {
+      setLines(prev => [...prev, "> Recommendation: System Reboot"]);
+    }, 2400);
+
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+      clearTimeout(timeout3);
+    };
+  }, []);
+
+  return (
+    <div className="bg-gray-900 border border-gray-700 rounded-md p-4 font-mono text-xs md:text-sm text-green-500 w-full max-w-md mt-8 shadow-lg">
+      <div className="flex gap-2 mb-2 border-b border-gray-800 pb-2">
+        <FiTerminal size={14} className="mt-0.5" />
+        <span className="text-gray-400">root@system:~/diagnostics</span>
+      </div>
+      <div className="space-y-1">
+        {lines.map((line, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={line.includes("Error") || line.includes("Critical") ? "text-red-400 font-bold" : "text-green-400"}
+          >
+            {line}
+          </motion.div>
+        ))}
+        <motion.div
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+          className="w-2 h-4 bg-green-500 inline-block align-middle ml-1"
+        />
+      </div>
+    </div>
+  );
+};
 
 const Error404 = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-center p-6"
+      className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden"
     >
-      {/* Efecto de partículas digitales (simulado con texto) */}
-      <div className="absolute inset-0 overflow-hidden opacity-10 pointer-events-none">
-        <div className="grid grid-cols-10 gap-1 h-full w-full">
-          {[...Array(100)].map((_, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.3, 0] }}
-              transition={{
-                duration: Math.random() * 3 + 1,
-                repeat: Infinity,
-                delay: Math.random() * 2
-              }}
-              className="text-xs text-emerald-400"
-            >
-              {Math.random() > 0.5 ? "1" : "0"}
-            </motion.span>
-          ))}
-        </div>
+      {/* Abstract Background Shapes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-900/10 rounded-full blur-3xl opacity-50" />
+
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(30,41,59,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(30,41,59,0.2)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
       </div>
 
       <motion.div
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 200 }}
-        className="relative z-10"
+        drag
+        dragConstraints={{ left: -20, right: 20, top: -20, bottom: 20 }}
+        className="relative z-10 flex flex-col items-center"
       >
-        {/* Icono animado */}
-        <motion.div
-          animate={{
-            rotate: [0, 10, -10, 0],
-            y: [0, -10, 0]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatType: "mirror"
-          }}
-          className="mx-auto mb-6 text-indigo-400"
-        >
-          <FiAlertTriangle size={80} />
-        </motion.div>
+        <div className="mb-6 relative">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-8 border border-dashed border-gray-700 rounded-full opacity-30"
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-12 border border-dotted border-gray-800 rounded-full opacity-30"
+          />
+          <FiAlertTriangle size={64} className="text-red-500" />
+        </div>
 
-        {/* Texto con gradiente */}
-        <h1 className="text-8xl md:text-9xl font-bold mb-4 bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-          404
+        <h1 className="text-9xl font-bold mb-2 leading-none select-none">
+          <GlitchText text="404" />
         </h1>
-        
-        <h2 className="text-2xl md:text-3xl font-medium text-gray-300 mb-6">
-          Página no encontrada
+
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-200 mb-2 uppercase tracking-widest">
+          System Failure
         </h2>
-        
-        <p className="text-gray-400 max-w-md mx-auto mb-8">
-          La página que buscas ha sido movida, eliminada o quizá nunca existió.
+
+        <p className="text-gray-500 max-w-sm mx-auto mb-6">
+          The requested trajectory cannot be calculated. The sector you are trying to access does not exist in this dimension.
         </p>
 
-        {/* Botón animado */}
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-500 hover:to-emerald-500 text-white px-6 py-3 rounded-lg font-medium transition-all"
+        <Link to="/">
+          <motion.button
+            whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(220, 38, 38, 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            className="group relative bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-md font-bold text-sm tracking-wider uppercase transition-all flex items-center gap-3 overflow-hidden"
           >
-            <FiArrowLeft />
-            Volver al inicio
-          </Link>
-        </motion.div>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 transform skew-y-12" />
+            <FiPower className="text-lg" />
+            <span>Reboot System</span>
+          </motion.button>
+        </Link>
+
+        <TerminalLoader />
+
       </motion.div>
 
-      {/* Código de error simulado */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="mt-12 text-xs text-gray-600 font-mono text-left max-w-md w-full"
-      >
-        <div className="bg-gray-800/50 p-4 rounded-lg border-l-4 border-indigo-400">
-          <p><span className="text-emerald-400">console</span>.<span className="text-indigo-400">warn</span>(<span className="text-yellow-300">"Route not found: {window.location.pathname}"</span>);</p>
-          <p><span className="text-gray-500">// Status: 404</span></p>
-          <p><span className="text-gray-500">// Solución: Verificar ruta o volver al inicio</span></p>
-        </div>
-      </motion.div>
+      {/* Footer System Info */}
+      <div className="absolute bottom-6 left-0 w-full text-center text-[10px] text-gray-600 font-mono">
+        ERROR_CODE: 0x4_NOT_FOUND | SYSTEM_INTEGRITY: 84% | MODULE: NAVIGATION
+      </div>
     </motion.div>
   );
 };

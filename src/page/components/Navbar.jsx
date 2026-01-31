@@ -53,7 +53,7 @@ const Navbar = () => {
 								to="/"
 								className="text-lg font-bold font-mono tracking-tighter"
 							>
-								<span className="text-indigo-400">&lt;</span>
+								<span className="text-indigo-400">&lt;</span>s
 								<span className="text-white">Juni</span>
 								<span className="text-emerald-400">Dev</span>
 								<span className="text-indigo-400">/&gt;</span>
